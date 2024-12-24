@@ -1,7 +1,7 @@
 {
   "scripts": {
     "_watch": "bun x watch-cli -p 'pages/**' -p '*.ts' -p '*.css' -c 'bun _build'",
-    "_build": "bun build.ts",
+    "_build": "bun task/build.ts",
     "preview": "open file:///Users/yuma/ghq/github.com/yumafuu/sfc-gp2/main.pdf"
   },
   "dependencies": {

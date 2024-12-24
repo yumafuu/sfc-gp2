@@ -1,3 +1,4 @@
+import { $ } from "bun";
 import { mdToPdf } from 'md-to-pdf';
 import fs from 'fs';
 import config from "./config.js";
@@ -17,7 +18,14 @@ export const build = async () => {
   let content = ""
   for (let i = 0; i < orderedPages.length; i++) {
     const page = pages[i];
-    const file = Bun.file(`pages/${page}`);
+    const buildfilepath = `pages/${page}/index.ts`;
+    const buildfile = Bun.file(buildfilepath);
+    if (await buildfile.exists()) {
+      console.log(`Building ${page}...`)
+      await $`bun run ${buildfilepath}`
+    }
+
+    const file = Bun.file(`pages/${page}/index.md`);
     const filecontentTmpl = await file.text()
 
     const filecontent = filecontentTmpl.replace(/{{ pagenum }}/g, i + 1);

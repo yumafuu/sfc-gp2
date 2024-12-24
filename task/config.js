@@ -1,5 +1,5 @@
 module.exports = {
-	stylesheet: [ 'style.css' ],
+	stylesheet: [ 'task/style.css' ],
 	// css: `body { color: tomato; }`,
 	body_class: 'markdown_body',
 	marked_options: {
