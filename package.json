@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "_watch": "bun x watch-cli -p 'pages/**' -p '**/*.ts' -p '**/*.css' -c 'bun _build'",
-    "_build": "bun task/build.ts",
+    "_watch": "bun x watch-cli -p '**/*.{md,css,js,ts,yaml}' -c 'bun _build'",
+    "_build": "bun build.ts",
     "preview": "open file:///Users/yuma/ghq/github.com/yumafuu/sfc-gp2/main.pdf"
   },
   "dependencies": {
@@ -10,6 +10,7 @@
     "esbuild": "^0.24.2",
     "md-to-pdf": "^5.2.4",
     "mdx": "^0.3.1",
+    "pdf-lib": "^1.17.1",
     "react": "^19.0.0",
     "remark": "^15.0.1",
     "remark-mdx": "^3.1.0",
