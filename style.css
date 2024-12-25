@@ -3,32 +3,20 @@
 }
 
 /* margin-top */
-.mt-50px {
-  margin-top: 50px;
-}
-.mt-100px {
-  margin-top: 100px;
-}
-.mt-200px {
-  margin-top: 200px;
-}
-.mt-300px {
-  margin-top: 300px;
-}
+.mt-\[50px\] { margin-top: 50px; }
+.mt-\[100px\] { margin-top: 100px; }
+.mt-\[150px\] { margin-top: 150px; }
+.mt-\[200px\] { margin-top: 200px; }
+.mt-\[250px\] { margin-top: 250px; }
+.mt-\[300px\] { margin-top: 300px; }
 
 /* margin-bottom */
-.mb-50px {
-  margin-bottom: 50px;
-}
-.mb-100px {
-  margin-bottom: 100px;
-}
-.mb-200px {
-  margin-bottom: 200px;
-}
-.mb-300px {
-  margin-bottom: 300px;
-}
+.mb-\[50px\] { margin-bottom: 50px; }
+.mb-\[100px\] { margin-bottom: 100px; }
+.mb-\[150px\] { margin-bottom: 150px; }
+.mb-\[200px\] { margin-bottom: 200px; }
+.mb-\[250px\] { margin-bottom: 250px; }
+.mb-\[300px\] { margin-bottom: 300px; }
 
 .markdown_body {
   margin: 4px;

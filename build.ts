@@ -8,6 +8,7 @@ const pagerbreak = `<div class="page-break"></div>\n\n`;
 
 export interface Document {
   cover: { content: string };
+  summary: { content: string };
   sections: Section[];
 }
 
@@ -92,8 +93,11 @@ const build = async () => {
 
   let mdcontent = "";
   const cover = await getContent(parsed.cover.content);
-
   mdcontent += cover;
+  mdcontent += pagerbreak;
+
+  const summary = await getContent(parsed.summary.content);
+  mdcontent += summary;
   mdcontent += pagerbreak;
   mdcontent += BuildMokuji(mokujis);
   mdcontent += body;
