@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   stylesheet: ["style.css"],
   css: ``,
   body_class: ["markdown_body"],

@@ -1,5 +1,6 @@
 import YAML from "yaml";
 import { mdToPdf } from "md-to-pdf";
+
 import { PDFDocument } from "pdf-lib";
 
 import config from "./config.js";
@@ -32,11 +33,11 @@ const getContent = (content: string) => {
   }
 };
 
-const pagenumSpan = (i) => {
+const pagenumSpan = (i: number) => {
   return `<span class="align-right font-mid"> ${i} </span>`;
 };
 
-export const BuildMokuji = (titles) => {
+export const BuildMokuji = (titles: [number, string, string][]) => {
   let content = "# 目次\n\n";
   content += "<section class='mokuji'>\n\n";
   for (let title of titles) {
@@ -102,10 +103,10 @@ const build = async () => {
   mdcontent += BuildMokuji(mokujis);
   mdcontent += body;
 
-  const contentpdf = await mdToPdf({ content: mdcontent }, config);
+  const contentpdf = await mdToPdf({ content: mdcontent }, config as any);
 
   // Add page numbers
-  const pdfDoc = await PDFDocument.load(contentpdf.content);
+  const pdfDoc = await PDFDocument.load(contentpdf.content as any);
   const totalPages = pdfDoc.getPageCount();
   const romans = ["i", "ii", "iii", "iv", "v"];
 
