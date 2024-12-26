@@ -50,7 +50,7 @@ export const BuildMokuji = (titles) => {
       else ver = `第${ver}章`;
     }
 
-    content += `${hprefix} ${ver}${str}${pagenumSpan(page)}\n\n`;
+    content += `${hprefix} ${ver} ${str}${pagenumSpan(page)}\n\n`;
   }
   content += "</section>";
 
