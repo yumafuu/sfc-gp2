@@ -24,7 +24,6 @@ const pagerbreak = `<div class="page-break"></div>\n\n`;
 export interface Document {
   cover: { content: string };
   summary: { content: string };
-  figureTable: { name: string; page: number }[];
   sections: Section[];
 }
 
@@ -46,7 +45,7 @@ const getContent = (content: string) => {
   }
 };
 
-const pagenumSpan = (i: number) => {
+const pagenumSpan = (i: string|number) => {
   return `<span class="align-right font-mid"> ${i} </span>`;
 };
 
@@ -71,12 +70,12 @@ const buildMokuji = (titles: [number, string, string][ ]) => {
   return content;
 };
 
-const buildZuMokuji = (zus: {name: string; page: number}[]) => {
+const buildZuMokuji = (figures: { uid: string, name: string }[]) => {
   let content = "# 図目次\n\n";
   content += "<section class='mokuji'>\n\n";
-  for (let zu of zus) {
-    const { name, page } = zu;
-    content += `${name}${pagenumSpan(page)}\n\n`;
+  for (let fig of figures) {
+    const { uid, name } = fig;
+    content += `${name} ${pagenumSpan(`{{ pagefig:${uid} }}`)}\n\n`;
   }
   content += "</section>";
 
@@ -92,6 +91,8 @@ const build = async () => {
 
   let body = "";
   let mokujis: [number, string, string][] = [];
+  let figures: { uid: string, name: string }[] = []; // list of uid
+  let references: string[] = []
   const processSections = async (sections: Section[], page: number) => {
     for (let section of sections) {
       page = section.page || page;
@@ -107,7 +108,24 @@ const build = async () => {
         body += pagerbreak;
       }
       body += `${mdprefix} ${indexstr} ${section.title}\n\n`;
-      body += await getContent(section.content) + "\n";
+
+      const rawcontnt = await getContent(section.content) + "\n";
+      // 参考文献 {{ ref:(ref content) }} を置換
+      const refcontent = rawcontnt.replace(/{{ ref:(.*)}}/g, (_, ref) => {
+        references.push(ref);
+        return `[${references.length}]`;
+      });
+
+      // 図 {{ fig:(fig content) }} を置換
+      let figindex = 0;
+      const figcontent = refcontent.replace(/{{ fig:(.*)}}/g, (_, name) => {
+        figindex++;
+        const uid = `${section.index[0]}.${figindex}`;
+        figures.push({ uid, name });
+        return `図${uid} ${name}`;
+      })
+
+      body += figcontent;
 
       if (section.subsections) {
         await processSections(section.subsections, page);
@@ -127,7 +145,7 @@ const build = async () => {
   mdcontent += pagerbreak;
   mdcontent += buildMokuji(mokujis);
   mdcontent += pagerbreak;
-  mdcontent += buildZuMokuji(parsed.figureTable);
+  mdcontent += buildZuMokuji(figures);
   mdcontent += body;
 
   const contentpdf = await mdToPdf({ content: mdcontent }, config as any);
@@ -135,6 +153,10 @@ const build = async () => {
   // Add page numbers
   const pdfDoc = await PDFDocument.load(contentpdf.content as any);
   const totalPages = pdfDoc.getPageCount();
+
+  for (let i = 0; i < totalPages; i++) {
+    pdfDoc.addJavaScript(`fig${i}`, `this.getField("pagenum").value = "${i + 1}";`);
+  }
   const romans = ["i", "ii", "iii", "iv", "v", "vi", "vii"];
   const metapageNum = 6;
   const startOffset = 2
