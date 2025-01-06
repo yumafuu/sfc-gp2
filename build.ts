@@ -3,13 +3,28 @@ import { mdToPdf } from "md-to-pdf";
 
 import { PDFDocument } from "pdf-lib";
 
-import config from "./config.js";
+const config = {
+  stylesheet: ["style.css"],
+  css: ``,
+  body_class: ["markdown_body"],
+  marked_options: {
+    headerIds: false,
+    smartypants: false,
+  },
+  pdf_options: {
+    format: "A5",
+    margin: "20mm",
+  },
+  stylesheet_encoding: "utf-8",
+};
+
 
 const pagerbreak = `<div class="page-break"></div>\n\n`;
 
 export interface Document {
   cover: { content: string };
   summary: { content: string };
+  figureTable: { name: string; page: number }[];
   sections: Section[];
 }
 
@@ -20,8 +35,6 @@ export interface Section {
   page: number;
   subsections?: Section[];
 }
-
-const metapageNum = 3;
 
 const getContent = (content: string) => {
   const match = content.match(/file\(`(.*)`\)/);
@@ -37,7 +50,7 @@ const pagenumSpan = (i: number) => {
   return `<span class="align-right font-mid"> ${i} </span>`;
 };
 
-export const BuildMokuji = (titles: [number, string, string][]) => {
+const buildMokuji = (titles: [number, string, string][ ]) => {
   let content = "# 目次\n\n";
   content += "<section class='mokuji'>\n\n";
   for (let title of titles) {
@@ -58,6 +71,18 @@ export const BuildMokuji = (titles: [number, string, string][]) => {
   return content;
 };
 
+const buildZuMokuji = (zus: {name: string; page: number}[]) => {
+  let content = "# 図目次\n\n";
+  content += "<section class='mokuji'>\n\n";
+  for (let zu of zus) {
+    const { name, page } = zu;
+    content += `${name}${pagenumSpan(page)}\n\n`;
+  }
+  content += "</section>";
+
+  return content;
+}
+
 const build = async () => {
   const dir = import.meta.url.replace("/build.ts", "").replace("file://", "");
   const file = Bun.file(`${dir}/contents/content.yaml`);
@@ -76,7 +101,7 @@ const build = async () => {
       const indexsize = section.index.split(".").length;
       const mdprefix = `#`.repeat(indexsize);
       const indexstr = mdprefix === "#"
-        ? `第${section.index}章`
+        ? section.index ? `第${section.index}章` : section.index
         : section.index;
 
       if (indexsize === 1) {
@@ -96,11 +121,14 @@ const build = async () => {
   const cover = await getContent(parsed.cover.content);
   mdcontent += cover;
   mdcontent += pagerbreak;
+  mdcontent += pagerbreak;
 
   const summary = await getContent(parsed.summary.content);
   mdcontent += summary;
   mdcontent += pagerbreak;
-  mdcontent += BuildMokuji(mokujis);
+  mdcontent += buildMokuji(mokujis);
+  mdcontent += pagerbreak;
+  mdcontent += buildZuMokuji(parsed.figureTable);
   mdcontent += body;
 
   const contentpdf = await mdToPdf({ content: mdcontent }, config as any);
@@ -108,15 +136,22 @@ const build = async () => {
   // Add page numbers
   const pdfDoc = await PDFDocument.load(contentpdf.content as any);
   const totalPages = pdfDoc.getPageCount();
-  const romans = ["i", "ii", "iii", "iv", "v"];
+  const romans = ["i", "ii", "iii", "iv", "v", "vi", "vii"];
+  const metapageNum = 6;
+  const startOffset = 2
 
   for (let i = 0; i < totalPages; i++) {
-    if (i === 0) continue;
+    if (i < startOffset) continue;
 
     const pagePdf = pdfDoc.getPage(i);
-    const { width } = pagePdf.getSize();
-    const displayValue = i < metapageNum ? romans[i - 1] : i - metapageNum + 1;
+    let displayValue: string|number
+    if (i < metapageNum) {
+      displayValue = romans[i - startOffset];
+    } else {
+      displayValue = i - metapageNum + 1
+    }
 
+    const { width } = pagePdf.getSize();
     pagePdf.drawText(displayValue.toString(), {
       x: width / 2 - 10, // 中央寄せ
       y: 20, // 下からの位置
@@ -124,7 +159,7 @@ const build = async () => {
     });
   }
   const pdf = await pdfDoc.save();
-  Bun.write("main.pdf", pdf);
+  Bun.write("dist/main.pdf", pdf);
 
   const now = new Date().toLocaleString();
   console.log(`PDF generated successfully at ${now}`);
