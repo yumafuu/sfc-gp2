@@ -1,6 +1,5 @@
 import YAML from "yaml";
 import { mdToPdf } from "md-to-pdf";
-
 import { PDFDocument } from "pdf-lib";
 
 const config = {
@@ -70,14 +69,26 @@ const buildMokuji = (titles: [number, string, string][ ]) => {
   return content;
 };
 
-const buildZuMokuji = (figures: { uid: string, name: string }[]) => {
+const buildFiguresMokuji = (figures: { uid: string, name: string }[]) => {
   let content = "# 図目次\n\n";
-  content += "<section class='mokuji'>\n\n";
+  content += "<section>\n\n";
   for (let fig of figures) {
     const { uid, name } = fig;
     content += `${name} ${pagenumSpan(`{{ pagefig:${uid} }}`)}\n\n`;
   }
   content += "</section>";
+
+  return content;
+}
+
+const buildRefs = (refs: string[]) => {
+  let content = "# 参考文献";
+  content += "<ul>\n\n";
+  for (let i = 0; i < refs.length; i++) {
+    const ref = refs[i];
+    content += `<li class="mt-[20px]">[${i + 1}] ${ref}</li>`;
+  }
+  content += "</ul>";
 
   return content;
 }
@@ -93,6 +104,7 @@ const build = async () => {
   let mokujis: [number, string, string][] = [];
   let figures: { uid: string, name: string }[] = []; // list of uid
   let references: string[] = []
+  let figindexes = {};
   const processSections = async (sections: Section[], page: number) => {
     for (let section of sections) {
       page = section.page || page;
@@ -111,16 +123,18 @@ const build = async () => {
 
       const rawcontnt = await getContent(section.content) + "\n";
       // 参考文献 {{ ref:(ref content) }} を置換
-      const refcontent = rawcontnt.replace(/{{ ref:(.*)}}/g, (_, ref) => {
+      const refcontent = rawcontnt.replace(/\{\{\s*ref:\s*(.*?)\}\}/g, (_, ref) => {
         references.push(ref);
         return `[${references.length}]`;
       });
 
       // 図 {{ fig:(fig content) }} を置換
-      let figindex = 0;
-      const figcontent = refcontent.replace(/{{ fig:(.*)}}/g, (_, name) => {
-        figindex++;
-        const uid = `${section.index[0]}.${figindex}`;
+      const figcontent = refcontent.replace(/\{\{\s*fig:\s*(.*?)\}\}/g, (_, name) => {
+        const key = section.index[0]
+        figindexes[key] = figindexes[key] ? figindexes[key] + 1 : 1;
+        const i = figindexes[key];
+        const uid = `${section.index[0]}.${i}`;
+
         figures.push({ uid, name });
         return `図${uid} ${name}`;
       })
@@ -145,8 +159,10 @@ const build = async () => {
   mdcontent += pagerbreak;
   mdcontent += buildMokuji(mokujis);
   mdcontent += pagerbreak;
-  mdcontent += buildZuMokuji(figures);
+  mdcontent += buildFiguresMokuji(figures);
   mdcontent += body;
+  mdcontent += pagerbreak;
+  mdcontent += buildRefs(references);
 
   const contentpdf = await mdToPdf({ content: mdcontent }, config as any);
 
