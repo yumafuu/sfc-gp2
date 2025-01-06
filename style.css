@@ -34,7 +34,7 @@ h1 {
 
 h2 {
   font-size: 16px;
-  margin-top: 8px;
+  margin-top: 12px;
   margin-bottom: 0px;
 }
 
@@ -48,6 +48,14 @@ h4 {
   font-weight: lighter;
   margin-top: 4px;
   margin-bottom: 4px;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .mokuji > h1 {
@@ -75,4 +83,9 @@ h4 {
 
 .font-mid {
   font-size: 12px;
+}
+
+.img-caption {
+  font-size: 10px;
+  text-align: center;
 }

@@ -93,7 +93,6 @@ const build = async () => {
   let body = "";
   let mokujis: [number, string, string][] = [];
   const processSections = async (sections: Section[], page: number) => {
-    // sections.forEach((section) => {
     for (let section of sections) {
       page = section.page || page;
       mokujis.push([page, section.index, section.title]);
