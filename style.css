@@ -20,6 +20,10 @@
 
 .markdown_body {
   margin: 4px;
+  text-align: justify;
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 body {
@@ -56,6 +60,7 @@ img {
   display: block;
   margin-left: auto;
   margin-right: auto;
+  margin-top: 4px;
 }
 
 .mokuji > h1 {
