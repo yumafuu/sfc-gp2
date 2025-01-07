@@ -2,7 +2,7 @@
   "scripts": {
     "_watch": "bun x watch-cli -p '**/*.{md,css,js,ts,yaml}' -c 'bun _build'",
     "_build": "bun build.ts",
-    "preview": "open file:///Users/yuma/ghq/github.com/yumafuu/sfc-gp2/main.pdf"
+    "preview": "open file://./dist/main.pdf"
   },
   "dependencies": {
     "@mdx-js/esbuild": "^3.1.0",
