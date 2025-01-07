@@ -1,6 +1,8 @@
 import YAML from "yaml";
 import { mdToPdf } from "md-to-pdf";
 import { PDFDocument } from "pdf-lib";
+import * as pdfjsLib from "pdfjs-dist";
+import { warn } from "yaml/dist/log";
 
 const config = {
   stylesheet: ["style.css"],
@@ -44,8 +46,8 @@ const getContent = (content: string) => {
   }
 };
 
-const pagenumSpan = (i: string|number) => {
-  return `<span class="align-right font-mid"> ${i} </span>`;
+const pagenumSpan = (i: string|number, id: string = "") => {
+  return `<span class="align-right font-mid" id="${id}"> ${i} </span>`;
 };
 
 const buildMokuji = (titles: [number, string, string][ ]) => {
@@ -69,12 +71,16 @@ const buildMokuji = (titles: [number, string, string][ ]) => {
   return content;
 };
 
-const buildFiguresMokuji = (figures: { uid: string, name: string }[]) => {
+type Figure = {
+  uid: string;
+  name: string;
+}
+const buildFiguresMokuji = (figures: Figure[]) => {
   let content = "# 図目次\n\n";
   content += "<section>\n\n";
   for (let fig of figures) {
     const { uid, name } = fig;
-    content += `${name} ${pagenumSpan(`{{ pagefig:${uid} }}`)}\n\n`;
+    content += `${name} ${pagenumSpan(`{{ pagefig:${uid} }}`, `pagefig-${uid}`)}\n\n`;
   }
   content += "</section>";
 
@@ -86,7 +92,7 @@ const buildRefs = (refs: string[]) => {
   content += "<ul>\n\n";
   for (let i = 0; i < refs.length; i++) {
     const ref = refs[i];
-    content += `<li class="mt-[20px]">[${i + 1}] ${ref}</li>`;
+    content += `<li class="mt-[20px] nonlist">[${i + 1}] ${ref}</li>`;
   }
   content += "</ul>";
 
@@ -102,7 +108,7 @@ const build = async () => {
 
   let body = "";
   let mokujis: [number, string, string][] = [];
-  let figures: { uid: string, name: string }[] = []; // list of uid
+  let figures: Figure[] = []; // list of uid
   let references: string[] = []
   let figindexes = {};
   const processSections = async (sections: Section[], page: number) => {
@@ -128,14 +134,15 @@ const build = async () => {
         return `[${references.length}]`;
       });
 
-      // 図 {{ fig:(fig content) }} を置換
+      // 図 {{ fig:(fig content) }} からfiguresを作成
       const figcontent = refcontent.replace(/\{\{\s*fig:\s*(.*?)\}\}/g, (_, name) => {
         const key = section.index[0]
         figindexes[key] = figindexes[key] ? figindexes[key] + 1 : 1;
         const i = figindexes[key];
         const uid = `${section.index[0]}.${i}`;
 
-        figures.push({ uid, name });
+        const normalized = name.replace(/⽇/g, "日").replace(/⼊/g, "入"); // 文字コードが違う
+        figures.push({ uid, name: normalized });
         return `図${uid} ${name}`;
       })
 
@@ -148,31 +155,50 @@ const build = async () => {
   };
   await processSections(parsed.sections, 0);
 
-  let mdcontent = "";
+  let rawmdcontent = "";
   const cover = await getContent(parsed.cover.content);
-  mdcontent += cover;
-  mdcontent += pagerbreak;
-  mdcontent += pagerbreak;
+  rawmdcontent += cover;
+  rawmdcontent += pagerbreak;
+  rawmdcontent += pagerbreak;
 
   const summary = await getContent(parsed.summary.content);
-  mdcontent += summary;
-  mdcontent += pagerbreak;
-  mdcontent += buildMokuji(mokujis);
-  mdcontent += pagerbreak;
-  mdcontent += buildFiguresMokuji(figures);
-  mdcontent += body;
-  mdcontent += pagerbreak;
-  mdcontent += buildRefs(references);
+  rawmdcontent += summary;
+  rawmdcontent += pagerbreak;
+  rawmdcontent += buildMokuji(mokujis);
+  rawmdcontent += pagerbreak;
+  rawmdcontent += buildFiguresMokuji(figures);
+  rawmdcontent += body;
+  rawmdcontent += pagerbreak;
+  rawmdcontent += buildRefs(references);
 
-  const contentpdf = await mdToPdf({ content: mdcontent }, config as any);
+  const rawpdfcontent = await mdToPdf({ content: rawmdcontent }, config as any);
+  const pdfDocWithoutPageNum = await PDFDocument.load(rawpdfcontent.content as any);
 
-  // Add page numbers
-  const pdfDoc = await PDFDocument.load(contentpdf.content as any);
+  let mdcontent = rawmdcontent;
+  let pdf = await pdfDocWithoutPageNum.save();
+  const pdflibdoc = await pdfjsLib.getDocument(pdf).promise
+
+  // 全ページを順に走査
+  for (let pageNum = 1; pageNum <= pdflibdoc.numPages; pageNum++) {
+    const page = await pdflibdoc.getPage(pageNum);
+    const textContent = await page.getTextContent();
+
+    const pageText = textContent.items.map((item) => item.str).join("");
+
+    // 図x.x をページ番号に置換
+    pageText.replace(/図(\d+\.\d+)/g, (match, uid) => {
+      mdcontent = mdcontent.replace(`{{ pagefig:${uid} }}`, `${pageNum}`);
+
+      return match
+    })
+  }
+
+
+  const pdfcontent = await mdToPdf({ content: mdcontent }, config as any);
+  const pdfDoc = await PDFDocument.load(pdfcontent.content as any);
+  // PDFにページ番号を挿入
   const totalPages = pdfDoc.getPageCount();
 
-  for (let i = 0; i < totalPages; i++) {
-    pdfDoc.addJavaScript(`fig${i}`, `this.getField("pagenum").value = "${i + 1}";`);
-  }
   const romans = ["i", "ii", "iii", "iv", "v", "vi", "vii"];
   const metapageNum = 6;
   const startOffset = 2
@@ -195,7 +221,8 @@ const build = async () => {
       size: 6,
     });
   }
-  const pdf = await pdfDoc.save();
+
+  pdf = await pdfDoc.save();
   Bun.write("dist/main.pdf", pdf);
 
   const now = new Date().toLocaleString();

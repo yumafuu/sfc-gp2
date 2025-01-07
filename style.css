@@ -68,7 +68,7 @@ ul {
   padding-left: 0;
 }
 
-li {
+.nonlist {
   list-style: none;
   text-align: left
 }
