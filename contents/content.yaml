@@ -111,45 +111,11 @@ sections:
       提案手法を検証するために開発したプロトタイプの開発環境や主要機能について概説する。
     subsections:
       - index: "4.1"
-        title: プロトタイプの機能構成
-        content: |
-          アプリケーションは起動後に以下のことが可能となる
-          1. コンテキストを切り替える
-          2. キーとなる文字列を入力する
-          3. 入力表示されたキーを元に候補から選択する
-
-          以下はデータフローの概要である。
-          <img src="https://i.gyazo.com/b83e290114de07d0b88188ccaf92bb85.png" alt="データフロー" width="400">
-          <p class="img-caption">{{ fig: データフロー }}</p>
-
-        subsections:
-          - index: "4.1.1"
-            title: コンテキストの切り替え
-            content: |
-              コンテキストの切り替えは、ctrl+[登録されたキー]または左右の矢印キーで行うことができる。
-              以下はコンテキストの切り替えの様子である。
-              画像左側の「[p] greetings」を選択している状態で「ctrl+p」を押すことで、画像右側の状態に切り替わる。
-
-              <img src="https://i.gyazo.com/526eed3f7792c41b26932c10fb83e216.png" alt="コンテキスト切り替えの様子" width="400">
-              <p class="img-caption">{{ fig: コンテキスト切り替えの様子 }}</p>
-          - index: "4.1.2"
-            title: キーとなる文字列の入力と候補の選択
-            content: |
-              キーとなる文字列の入力は、従来のIMEの入力と同様に行うことができる。入力中の文字列は画面中央のエリアに表示される。入力中の文字列を元に変換候補を表示され、ユーザーはその中から選択することで変換を行うことができる。
-
-              以下は「お世話になっております」と入力する際の様子である。
-
-              <img src="https://i.gyazo.com/302f18d2364a7fc595742a28ba617f7d.png" alt="入力中の文字列と変換候補" width="400">
-              <p class="img-caption">{{ fig: 入力中の文字列と変換候補 }}</p>
-
-              「os」と入力した時点で「お世話になっております」が変換候補として表示され、下矢印キーまたはctrl+jキーを入力し、エンターキーを押すことで変換の確定を行うことができる。
-
-      - index: "4.2"
         title: 開発環境と技術要件
         content: |
           Go言語のTUIフレームワークであるbubbletea{{ ref: bubblete - A powerful little TUI framework 🏗 https://github.com/charmbracelet/bubbletea }} とそのコンポーネントであるbubbles{{ ref: bubbles - TUI components for Bubble Tea 🫧 https://github.com/charmbracelet/bubbles }} を用いてターミナルで動作する今回提案するシステムのプロトタイプを開発した。Go言語はクロスプラットフォームで動作するため、Linux, MacOS, Windowsなどの環境で動作することが可能である。今回はMacOS Sequoia 15.1.1 で開発と動作確認を行った。
 
-      - index: "4.3"
+      - index: "4.2"
         title: インターフェース概要
         content: |
           プロトタイプのインターフェースは以下のようになっている。
@@ -167,6 +133,40 @@ sections:
 
           4. 現在のコンテキストにおける変換候補を表示するエリア。 <br>
           画像では「よろしくお願いします」「おはようございます」「おはよう」「どうぞよろしく」の4つの候補が表示されている。
+
+      - index: "4.3"
+        title: プロトタイプの機能構成
+        content: |
+          アプリケーションは起動後に以下のことが可能となる
+          1. コンテキストを切り替える
+          2. キーとなる文字列を入力する
+          3. 入力表示されたキーを元に候補から選択する
+
+          以下はデータフローの概要である。
+          <img src="https://i.gyazo.com/b83e290114de07d0b88188ccaf92bb85.png" alt="データフロー" width="400">
+          <p class="img-caption">{{ fig: データフロー }}</p>
+
+        subsections:
+          - index: "4.3.1"
+            title: コンテキストの切り替え
+            content: |
+              コンテキストの切り替えは、ctrl+[登録されたキー]または左右の矢印キーで行うことができる。
+              以下はコンテキストの切り替えの様子である。
+              画像左側の「[p] greetings」を選択している状態で「ctrl+p」を押すことで、画像右側の状態に切り替わる。
+
+              <img src="https://i.gyazo.com/526eed3f7792c41b26932c10fb83e216.png" alt="コンテキスト切り替えの様子" width="400">
+              <p class="img-caption">{{ fig: コンテキスト切り替えの様子 }}</p>
+          - index: "4.3.2"
+            title: キーとなる文字列の入力と候補の選択
+            content: |
+              キーとなる文字列の入力は、従来のIMEの入力と同様に行うことができる。入力中の文字列は画面中央のエリアに表示される。入力中の文字列を元に変換候補を表示され、ユーザーはその中から選択することで変換を行うことができる。
+
+              以下は「お世話になっております」と入力する際の様子である。
+
+              <img src="https://i.gyazo.com/302f18d2364a7fc595742a28ba617f7d.png" alt="入力中の文字列と変換候補" width="400">
+              <p class="img-caption">{{ fig: 入力中の文字列と変換候補 }}</p>
+
+              「os」と入力した時点で「お世話になっております」が変換候補として表示され、下矢印キーまたはctrl+jキーを入力し、エンターキーを押すことで変換の確定を行うことができる。
 
 
       - index: "4.4"
