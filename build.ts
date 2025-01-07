@@ -183,7 +183,6 @@ const build = async () => {
   const pdflibdoc = await pdfjsLib.getDocument(pdf).promise
 
 
-  console.log({ mdcontent })
   const figpageoffset = 4
   const mokujipageoffset = 6
   // 全ページを順に走査
@@ -195,10 +194,8 @@ const build = async () => {
 
     // 目次のページ番号を挿入 {{ pageindex:1.1 }} など
     pageText.replace(/\{\{\s*pageindex:\s*(.*?)\}\}/g, (match, uid) => {
-      console.log({ match, uid })
       mdcontent = mdcontent.replace(`{{ page:${uid}}}`, `${pageNum - mokujipageoffset}`);
       if (uid[0] === "+") {
-        console.log(`replacing ${uid} is + prefix`)
         mdcontent = mdcontent.replace(`{{ pageindex:${uid}}}`, ``);
       } else {
         mdcontent = mdcontent.replace(`{{ pageindex:${uid}}}`, `${uid}`);
